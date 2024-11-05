@@ -28,6 +28,9 @@ const userSchema = new Schema(
         avatar: {
             type: String,
         },
+        coverImage: {
+            type: String,
+        },
         watchHistory: [
             {
                 type: Schema.Types.ObjectId,

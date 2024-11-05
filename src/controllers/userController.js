@@ -7,6 +7,8 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 const registerUser = asyncHandler(async (req, res) => {
 
     const { fullname, email, username, password } = req.body
+    console.log("fullname", fullname)
+    console.log("email", email)
 
     if (
         [fullname, email, username, password].some((field) => field?.trim() === "")
@@ -40,7 +42,7 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Avater file is required")
     }
 
-    const user = User.create({
+    const user = await User.create({
         fullname,
         avatar: avatar?.url,
         coverImage: coverImage?.url || "",
@@ -58,7 +60,7 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     return res.status(201).json(
-        new ApiResponse(200, "User registered successfully")
+        new ApiResponse(201, createdUser, "User registered successfully")
     )
 })
 

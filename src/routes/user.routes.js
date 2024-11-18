@@ -4,6 +4,7 @@ import { upload } from "../middlewares/multer.js";
 import { login } from "../controllers/userController.js";
 import { verifyJWT } from "../middlewares/auth.js";
 import { logOut } from "../controllers/userController.js";
+import { refreshAccessToken } from "../controllers/userController.js";
 
 const router = Router()
 
@@ -27,5 +28,6 @@ router.route("/login").post(login)
 //secured routes
 
 router.route("/logOut").post(verifyJWT, logOut)
+router.route("/refreshToken").post(refreshAccessToken)
 
 export default router

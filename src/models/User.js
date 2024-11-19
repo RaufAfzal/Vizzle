@@ -31,7 +31,7 @@ const userSchema = new Schema(
         coverImage: {
             type: String,
         },
-        watchHistory: [
+        watchHistory: [              //vedios id to be added
             {
                 type: Schema.Types.ObjectId,
                 ref: "Vedio",

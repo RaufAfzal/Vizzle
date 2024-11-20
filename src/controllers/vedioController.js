@@ -45,6 +45,65 @@ const publishAVedio = asyncHandler(async (req, res) => {
 })
 
 
+const getVedioById = asyncHandler(async (req, res) => {
+    const { id } = req.params
+
+    if (!id) {
+        throw new ApiError(400, "Vedio Id is required")
+    }
+
+    const vedio = await Vedio.findById(id)
+
+    if (!vedio) {
+        throw new ApiError(400, "Vedio not found")
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200, vedio, "vedio fetched successfully")
+    )
+})
+
+
+const updateVedio = asyncHandler(async (req, res) => {
+    const { id } = req.params
+
+    const { title, description } = req.body
+
+    const thumbnail = req.file.path
+
+    if (!(title || description || thumbnail)) {
+        throw new ApiError(400, "title desctiption and thumbnail required")
+    }
+
+    const thumbnailToCloudinary = await streamUploadToCloudinary(thumbnail)
+
+    if (!thumbnailToCloudinary) {
+        throw new ApiError(400, "Error while uploading to cloudinary")
+    }
+
+    const vedio = await Vedio.findByIdAndUpdate(
+        id,
+        {
+            $set: {
+                title,
+                description,
+                thumbnail: thumbnail?.url
+            }
+        },
+        {
+            new: true
+        }
+    )
+
+    return res.status(200).json(
+        new ApiResponse(200, vedio, "update vedio data successfully")
+    )
+
+})
+
+
 export {
-    publishAVedio
+    publishAVedio,
+    getVedioById,
+    updateVedio
 }

@@ -1,9 +1,10 @@
 import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { User } from "../models/User.js"
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { streamUploadToCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 const generateAccessAndRefreshToken = async (userId) => {
     try {
@@ -54,8 +55,8 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Avatar file is required")
     }
 
-    const avatar = await uploadOnCloudinary(avatarLocalPath)
-    const coverImage = await uploadOnCloudinary(coverImageLocalPath)
+    const avatar = await streamUploadToCloudinary(avatarLocalPath)
+    const coverImage = await streamUploadToCloudinary(coverImageLocalPath)
 
     if (!avatar) {
         throw new ApiError(400, "Avater file is required")
@@ -284,7 +285,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Avatar file is missing")
     }
 
-    const avatar = await uploadOnCloudinary(avatarLocalPath)
+    const avatar = await streamUploadToCloudinary(avatarLocalPath)
 
     if (!avatar) {
         throw new ApiError(400, "Error while uploading on Cloudinary")
@@ -318,7 +319,7 @@ const updateCoverImage = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Cover Image is Missing")
     }
 
-    const coverImage = await uploadOnCloudinary(coverImageLocalPath)
+    const coverImage = await streamUploadToCloudinary(coverImageLocalPath)
 
     const user = await User.findByIdAndUpdate(
         req.user._id,
@@ -417,6 +418,61 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         ))
 })
 
+const getWatchHistory = asyncHandler(async (req, res) => {
+
+    const user = await User.aggregate([
+        {
+            $match: {
+                // _id: req?.user?._id
+                _id: new mongoose.Types.ObjectId(req?.user?._id)
+            }
+        },
+        {
+            $lookup: {
+                from: "vedios",
+                localField: "watchHistory",
+                foreignField: "_id",
+                as: "watchHistory",
+                pipeline: [
+                    {
+                        $lookup: {
+                            from: "users",
+                            localField: "owner",
+                            foreignField: "_id",
+                            as: "owner",
+                            pipeline: [
+                                {
+                                    $project: {
+                                        fullname: 1,
+                                        email: 1,
+                                        username: 1,
+                                        avatar: 1
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        $addFields: {
+                            owner: {
+                                $first: "$owner"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ])
+
+    return res
+        .status(200)
+        .json(new ApiResponse(
+            200,
+            user[0],
+            "Watched History fetched Successfully"
+        ))
+})
+
 export {
     registerUser,
     login,
@@ -428,4 +484,5 @@ export {
     updateUserAvatar,
     updateCoverImage,
     getUserChannelProfile,
+    getWatchHistory,
 }

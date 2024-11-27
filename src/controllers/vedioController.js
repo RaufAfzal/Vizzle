@@ -6,6 +6,64 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { getVedioDuration } from "../utils/vedioDuration.js";
 
 
+const getAllVedios = asyncHandler(async (req, res) => {
+
+    const { page = 1, limit = 10, query, sortBy = 'createdAt', sortType = 'desc', userId } = req.query;
+
+    const pageNum = parseInt(page, 10);
+    const limitNum = parseInt(limit, 10);
+    const skip = (pageNum - 1) * limitNum;
+
+
+    const sortOrder = sortType === 'asc' ? 1 : -1;
+
+    let filter = {}
+
+    if (query) {
+        filter = {
+            ...filter,
+            $or: [
+                { title: { $regex: query, $options: 'i' } },
+                { description: { $regex: query, $options: 'i' } }
+            ]
+        }
+    }
+
+    if (userId) {
+        filter = { ...filter, owner: userId };
+    }
+
+    const sortCriteria = {};
+    sortCriteria[sortBy] = sortOrder
+
+    const aggregationPipeline = [
+
+        { $match: filter },
+
+        { $sort: sortCriteria },
+
+        { $skip: skip },
+
+        { $limit: limitNum }
+
+    ]
+
+    const [vedios, totalVedios] = await Promise.all([
+        Vedio.aggregate(aggregationPipeline),
+        Vedio.countDocuments(filter)
+    ]);
+
+    res.status(200).json(
+        new ApiResponse(200, {
+            vedios,
+            totalVedios,
+            page: pageNum,
+            totalPage: Math.ceil(totalVedios / limitNum)
+        }, "Vedios Fetched Successfully")
+    )
+})
+
+
 const publishAVedio = asyncHandler(async (req, res) => {
     const { title, description } = req.body
 
@@ -141,8 +199,6 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
         }
     )
 
-    console.log("vedio will be", vedio)
-
     return res.status(200).json(
         new ApiResponse(200, vedio, "vedio status changed successfully")
     )
@@ -154,5 +210,6 @@ export {
     getVedioById,
     updateVedio,
     deleteVedio,
-    togglePublishStatus
+    togglePublishStatus,
+    getAllVedios,
 }

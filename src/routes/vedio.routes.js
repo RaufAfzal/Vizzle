@@ -4,7 +4,9 @@ import { verifyJWT } from "../middlewares/auth.js";
 import {
     getVedioById,
     publishAVedio,
-    updateVedio
+    updateVedio,
+    deleteVedio,
+    togglePublishStatus
 } from "../controllers/vedioController.js";
 
 
@@ -25,9 +27,14 @@ router.route('/').post(
     publishAVedio
 )
 
-router.route("/:id")
+router
+    .route("/:id")
     .get(getVedioById)
+    .delete(deleteVedio)
     .patch(upload.single("thumbnail"), updateVedio)
+
+router.route("/toggle/publish/:vedioId").patch(togglePublishStatus)
+
 
 
 export default router

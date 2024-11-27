@@ -3,6 +3,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { User } from "../models/User.js"
 import { streamUploadToCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { addEmailJob } from "../services/queueService.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 
@@ -71,6 +72,17 @@ const registerUser = asyncHandler(async (req, res) => {
         username: username.toLowerCase()
     })
 
+    //Enqueud a job
+    await addEmailJob({
+        to: user.email,
+        type: "registration",
+        data: {
+            fullname: user.fullname,
+            email: user.email,
+            username: user.username,
+        }
+    })
+
     const createdUser = await User.findById(user._id).select(
         "-password -refreshToken"
     )
@@ -107,6 +119,16 @@ const login = asyncHandler(async (req, res) => {
     }
 
     const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id)
+
+    //Enqueue email job
+    await addEmailJob({
+        to: user.email,
+        type: "login",
+        data: {
+            fullname: user.fullname,
+            username: user.username
+        }
+    })
 
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
 

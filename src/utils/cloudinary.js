@@ -43,21 +43,22 @@ const streamUploadToCloudinary = (localFilePath) => {
                             console.log("Local file removed after upload error")
                         }
                     })
-                    return reject(err)
+                    return reject(error)
                 }
                 fs.unlink(localFilePath, (err) => {
                     if (err) {
                         console.error("Error while removing local file", err)
                     } else {
-                        console.log("Local file removed after upload error")
+                        console.log("Local file removed after successfull upload")
                     }
                 })
+                console.log("Result here will be", result)
                 resolve(result)
             }
         )
         fileStream.pipe(uploadStream)     //pipe file stream to cloudinary upload stream 
 
-        fileStream.on("errro", (err) => {
+        fileStream.on("error", (err) => {
             console.log("File stream error", err)
             fs.unlink(localFilePath, (err) => {
                 if (err) {

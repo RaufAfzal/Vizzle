@@ -35,7 +35,7 @@ const publishAVedio = asyncHandler(async (req, res) => {
     })
 
     if (!vedio) {
-        throw new ApiError(500, "Something went wtong while creating the vedio")
+        throw new ApiError(500, "Something went wrong while creating the vedio")
     }
 
     return res.status(201).json(
@@ -101,9 +101,58 @@ const updateVedio = asyncHandler(async (req, res) => {
 
 })
 
+const deleteVedio = asyncHandler(async (req, res) => {
+    const { id } = req.params
+
+    const vedio = await Vedio.findByIdAndDelete(
+        id,
+        {
+            new: true
+        }
+    )
+
+    return res.status(200).json(
+        new ApiResponse(200, vedio, "vedio deleted successfully")
+    )
+})
+
+const togglePublishStatus = asyncHandler(async (req, res) => {
+    const { vedioId } = req.params
+    console.log("vedio id is ", vedioId)
+
+    if (!vedioId) {
+        throw new ApiError(400, "vedio id is required")
+    }
+    const { isPublished } = req.body
+
+    if (typeof isPublished !== "boolean") {
+        throw new ApiError(400, "Published status must be boolean either true ot false")
+    }
+
+    const vedio = await Vedio.findByIdAndUpdate(
+        vedioId,
+        {
+            $set: {
+                isPublished
+            }
+        },
+        {
+            new: true
+        }
+    )
+
+    console.log("vedio will be", vedio)
+
+    return res.status(200).json(
+        new ApiResponse(200, vedio, "vedio status changed successfully")
+    )
+})
+
 
 export {
     publishAVedio,
     getVedioById,
-    updateVedio
+    updateVedio,
+    deleteVedio,
+    togglePublishStatus
 }

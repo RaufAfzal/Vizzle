@@ -36,13 +36,73 @@ const createTweet = asyncHandler(async (req, res) => {
 
 const getUserTweets = asyncHandler(async (req, res) => {
 
+    const { userId } = req.params
+
+    if (!content) {
+        throw new ApiError(400, "User Id is required")
+    }
+
+    const userTweets = await Tweet.find({
+        owner: userId
+    })
+
+    if (!userTweets) {
+        throw new ApiError(500, "No Tweets with the particular user find")
+    }
+
+    return res.status(201).json(
+        new ApiResponse(201, userTweets, "User Tweets fetched successfully")
+    )
+
 })
 
 const updateTweet = asyncHandler(async (req, res) => {
 
+    const { tweetId } = req.params
+
+    const { content } = req.body
+
+    if (!tweetId) {
+        throw new ApiError(400, "Tweet id is required")
+    }
+
+    if (!content) {
+        throw new ApiError(400, "Content is required")
+    }
+
+    const updatedTweet = await Tweet.findOneAndUpdate(
+        { _id: tweetId },
+        {
+            $set: {
+                content
+            }
+        },
+        {
+            new: true
+        }
+    )
+
+    return res.status(201).json(
+        new ApiResponse(201, updatedTweet, "Tweet Updated fetched successfully")
+    )
+
 })
 
 const deleteTweet = asyncHandler(async (req, res) => {
+
+    const { tweetId } = req.params
+
+    if (!tweetId) {
+        throw new ApiError(400, "Tweet id is required")
+    }
+
+    const deleteTweet = await Tweet.findOneAndDelete(
+        { _id: tweetId }
+    )
+
+    return res.status(201).json(
+        new ApiResponse(201, deleteTweet, "Tweet Deleted successfully")
+    )
 
 })
 

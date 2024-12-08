@@ -1,7 +1,6 @@
-import { emailQueue } from "../services/queueService.js";
+import { emailQueue } from "../services/emailQueueService.js";
 import { sendEmail } from "../services/emailService.js";
 import { registrationTemplate, loginNotificationTemplate } from "../utils/emailTemplate.js";
-console.log("registration template is", registrationTemplate)
 
 //process email jobs
 emailQueue.process(async (job) => {

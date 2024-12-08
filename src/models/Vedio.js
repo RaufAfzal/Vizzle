@@ -29,17 +29,26 @@ const vedioSchema = new Schema(
         },
         isPublished: {
             type: Boolean,
-            default: true
+            default: false
         },
         owner: {
             type: Schema.Types.ObjectId,
             ref: "User"
+        },
+        publishAt: {
+            type: Date,
+            required: false
         }
     },
     {
         timestamps: true
     }
 )
+
+//indexing on fields
+vedioSchema.index({ title: 1 });
+vedioSchema.index({ owner: 1 });
+vedioSchema.index({ publishAt: 1 });
 
 vedioSchema.plugin(mongooseAggregatePaginate)
 

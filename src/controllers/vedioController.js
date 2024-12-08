@@ -1,9 +1,11 @@
+import { format } from 'date-fns';
 import { Vedio } from "../models/Vedio.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { streamUploadToCloudinary } from "../utils/cloudinary.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { getVedioDuration } from "../utils/vedioDuration.js";
+import { addVedioJob } from "../services/vedioQueueService.js";
 
 
 const getAllVedios = asyncHandler(async (req, res) => {
@@ -65,7 +67,7 @@ const getAllVedios = asyncHandler(async (req, res) => {
 
 
 const publishAVedio = asyncHandler(async (req, res) => {
-    const { title, description } = req.body
+    const { title, description, publishAt } = req.body
 
     if (!(title && description)) {
         throw new ApiError(400, "All Field are required")
@@ -89,11 +91,37 @@ const publishAVedio = asyncHandler(async (req, res) => {
         vedioFile: vedioFile?.url || "",
         thumbnail: thumbnail?.url || "",
         duration: vedioDuration,
-        owner: req?.user?._id
+        owner: req?.user?._id,
+        isPublished: !publishAt,
+        publishAt: publishAt ? new Date(publishAt) : undefined
     })
 
     if (!vedio) {
         throw new ApiError(500, "Something went wrong while creating the vedio")
+    }
+
+    if (publishAt) {
+
+        const publishDate = new Date(publishAt);
+        const currentTime = new Date();
+        const delay = publishDate.getTime() - currentTime.getTime()
+
+        if (delay <= 0) {
+            throw new ApiError(400, "Publish time must be in the future");
+        }
+
+        await addVedioJob({
+            vedioId: vedio._id,
+            vedioDetails: {
+                title: vedio.title,
+                url: vedio.vedioFile
+            },
+            userDetails: {
+                userId: req.user._id,
+                email: req.user.email,
+                username: req.user.username
+            }
+        }, delay)
     }
 
     return res.status(201).json(
@@ -176,7 +204,6 @@ const deleteVedio = asyncHandler(async (req, res) => {
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
     const { vedioId } = req.params
-    console.log("vedio id is ", vedioId)
 
     if (!vedioId) {
         throw new ApiError(400, "vedio id is required")

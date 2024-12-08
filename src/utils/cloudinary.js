@@ -52,7 +52,7 @@ const streamUploadToCloudinary = (localFilePath) => {
                         console.log("Local file removed after successfull upload")
                     }
                 })
-                console.log("Result here will be", result)
+                // console.log("Result here will be", result)
                 resolve(result)
             }
         )

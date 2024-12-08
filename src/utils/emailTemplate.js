@@ -19,8 +19,17 @@ const loginNotificationTemplate = (username) => `
     </div>
 `;
 
+const vedioPublishTemplate = (username, vedioTitle, vedioUrl) => `
+    <h1>Hi ${username},</h1>
+    <p>Your video "<strong>${vedioTitle}</strong>" has been successfully published!</p>
+    <p>You can view it <a href="${vedioUrl}">here</a>.</p>
+    <p>Thank you for using our platform!</p>
+`;
+
+
 
 export {
     registrationTemplate,
-    loginNotificationTemplate
+    loginNotificationTemplate,
+    vedioPublishTemplate
 }

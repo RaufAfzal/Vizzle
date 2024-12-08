@@ -3,7 +3,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { User } from "../models/User.js"
 import { streamUploadToCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { addEmailJob } from "../services/queueService.js";
+import { addEmailJob } from "../services/emailQueueService.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 
